@@ -1,0 +1,210 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BigQuery Release Radar - Stay Updated</title>
+    
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Outfit:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+    
+    <!-- Main Style -->
+    <link rel="stylesheet" href="/static/css/style.css">
+</head>
+<body>
+    <div class="app-container">
+        <!-- Sidebar -->
+        <aside class="sidebar">
+            <div class="brand">
+                <div class="logo-container">
+                    <svg viewBox="0 0 24 24" fill="none" class="brand-logo" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M4 15V9C4 7.89543 4.89543 7 6 7H18C19.1046 7 20 7.89543 20 9V15C20 16.1046 19.1046 17 18 17H6C4.89543 17 4 16.1046 4 15Z" stroke="currentColor" stroke-width="2"/>
+                        <path d="M12 7V17" stroke="currentColor" stroke-width="2"/>
+                        <path d="M4 12H20" stroke="currentColor" stroke-width="2"/>
+                        <circle cx="8" cy="9.5" r="1" fill="currentColor"/>
+                        <circle cx="16" cy="14.5" r="1" fill="currentColor"/>
+                    </svg>
+                </div>
+                <div>
+                    <h1>BQ Radar</h1>
+                    <span class="subtitle">BigQuery Release Insights</span>
+                </div>
+            </div>
+
+            <div class="search-section">
+                <div class="input-wrapper">
+                    <i data-lucide="search" class="search-icon"></i>
+                    <input type="text" id="search-input" placeholder="Search releases...">
+                </div>
+            </div>
+
+            <nav class="filters-nav">
+                <h3>Filter by Category</h3>
+                <ul class="filter-list">
+                    <li>
+                        <button class="filter-btn active" data-filter="all">
+                            <span class="filter-info">
+                                <i data-lucide="layers"></i>
+                                <span>All Updates</span>
+                            </span>
+                            <span class="count-badge" id="count-all">0</span>
+                        </button>
+                    </li>
+                    <li>
+                        <button class="filter-btn" data-filter="Feature">
+                            <span class="filter-info">
+                                <i data-lucide="sparkles" class="text-feature"></i>
+                                <span>Features</span>
+                            </span>
+                            <span class="count-badge badge-feature" id="count-feature">0</span>
+                        </button>
+                    </li>
+                    <li>
+                        <button class="filter-btn" data-filter="Issue">
+                            <span class="filter-info">
+                                <i data-lucide="alert-triangle" class="text-issue"></i>
+                                <span>Issues</span>
+                            </span>
+                            <span class="count-badge badge-issue" id="count-issue">0</span>
+                        </button>
+                    </li>
+                    <li>
+                        <button class="filter-btn" data-filter="Deprecation">
+                            <span class="filter-info">
+                                <i data-lucide="skull" class="text-deprecation"></i>
+                                <span>Deprecations</span>
+                            </span>
+                            <span class="count-badge badge-deprecation" id="count-deprecation">0</span>
+                        </button>
+                    </li>
+                    <li>
+                        <button class="filter-btn" data-filter="Change">
+                            <span class="filter-info">
+                                <i data-lucide="refresh-cw" class="text-change"></i>
+                                <span>Changes</span>
+                            </span>
+                            <span class="count-badge badge-change" id="count-change">0</span>
+                        </button>
+                    </li>
+                    <li>
+                        <button class="filter-btn" data-filter="Update">
+                            <span class="filter-info">
+                                <i data-lucide="info" class="text-update"></i>
+                                <span>General Updates</span>
+                            </span>
+                            <span class="count-badge badge-update" id="count-update">0</span>
+                        </button>
+                    </li>
+                </ul>
+            </nav>
+
+            <div class="sidebar-footer">
+                <div class="social-links">
+                    <a href="https://github.com" target="_blank" title="GitHub"><i data-lucide="github"></i></a>
+                    <a href="https://docs.cloud.google.com/bigquery/docs/release-notes" target="_blank" title="Official Release Notes"><i data-lucide="external-link"></i></a>
+                </div>
+                <p>&copy; 2026 BQ Radar</p>
+            </div>
+        </aside>
+
+        <!-- Main Content Area -->
+        <main class="main-content">
+            <header class="top-bar">
+                <div class="header-title-section">
+                    <h2>Release Feed</h2>
+                    <p class="feed-status" id="feed-status">Loading release notes...</p>
+                </div>
+                
+                <div class="header-actions">
+                    <div class="cache-time-indicator" id="cache-time" style="display: none;">
+                        <i data-lucide="clock"></i>
+                        <span id="cache-time-text">Updated just now</span>
+                    </div>
+                    
+                    <button class="btn btn-primary" id="refresh-btn">
+                        <i data-lucide="refresh-cw" class="btn-icon" id="refresh-spinner"></i>
+                        <span>Refresh Notes</span>
+                    </button>
+                </div>
+            </header>
+
+            <!-- Grid of Cards -->
+            <div class="feed-grid" id="feed-grid">
+                <!-- Skeleton cards loaded dynamically via JS -->
+                <div class="skeleton-card"></div>
+                <div class="skeleton-card"></div>
+                <div class="skeleton-card"></div>
+            </div>
+        </main>
+    </div>
+
+    <!-- Twitter Composer Drawer / Modal -->
+    <div class="modal-overlay" id="tweet-modal">
+        <div class="modal-container">
+            <div class="modal-header">
+                <div class="modal-title">
+                    <i data-lucide="twitter" class="twitter-icon-header"></i>
+                    <h3>Share on X / Twitter</h3>
+                </div>
+                <button class="modal-close" id="close-modal-btn">
+                    <i data-lucide="x"></i>
+                </button>
+            </div>
+            
+            <div class="modal-body">
+                <p class="modal-description">Draft your tweet. You can customize the message before sending it to X.</p>
+                
+                <!-- Mockup of a Tweet -->
+                <div class="tweet-mockup">
+                    <div class="mockup-header">
+                        <div class="avatar-placeholder">BQ</div>
+                        <div class="user-meta">
+                            <span class="user-name">BigQuery Release Radar</span>
+                            <span class="user-handle">@BQRadar &bull; Just now</span>
+                        </div>
+                    </div>
+                    <div class="mockup-body">
+                        <textarea id="tweet-textarea" maxlength="280" placeholder="What's happening?"></textarea>
+                    </div>
+                    <div class="mockup-footer">
+                        <div class="char-counter">
+                            <span id="char-count">0</span>/280
+                        </div>
+                    </div>
+                </div>
+
+                <div class="alert-box info-alert">
+                    <i data-lucide="info" class="alert-icon"></i>
+                    <p>Clicking "Post on X" will open X.com in a new tab with your pre-populated tweet draft.</p>
+                </div>
+            </div>
+
+            <div class="modal-footer">
+                <button class="btn btn-secondary" id="copy-tweet-btn">
+                    <i data-lucide="copy"></i>
+                    <span>Copy Text</span>
+                </button>
+                <button class="btn btn-primary btn-twitter" id="submit-tweet-btn">
+                    <svg viewBox="0 0 24 24" class="btn-svg-icon" fill="currentColor">
+                        <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/>
+                    </svg>
+                    <span>Post on X</span>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Notification Toast -->
+    <div class="toast" id="toast">
+        <i data-lucide="check-circle" class="toast-icon"></i>
+        <span class="toast-message">Copied to clipboard!</span>
+    </div>
+
+    <script src="/static/js/app.js"></script>
+</body>
+</html>
