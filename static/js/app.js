@@ -16,6 +16,17 @@ document.addEventListener('DOMContentLoaded', () => {
     const filterButtons = document.querySelectorAll('.filter-btn');
     const cacheTimeIndicator = document.getElementById('cache-time');
     const cacheTimeText = document.getElementById('cache-time-text');
+    const themeToggle = document.getElementById('theme-toggle');
+    const themeToggleIcon = document.getElementById('theme-toggle-icon');
+
+    // Initialize Theme
+    const currentTheme = localStorage.getItem('theme') || 'dark';
+    if (currentTheme === 'light') {
+        document.body.classList.add('light-theme');
+        themeToggleIcon.setAttribute('data-lucide', 'moon');
+    } else {
+        themeToggleIcon.setAttribute('data-lucide', 'sun');
+    }
 
     // Tweet Modal Elements
     const tweetModal = document.getElementById('tweet-modal');
@@ -395,6 +406,14 @@ document.addEventListener('DOMContentLoaded', () => {
         window.open(twitterUrl, '_blank');
         closeTweetModal();
         showToast('Opened X/Twitter composer!', 'twitter');
+    });
+
+    // Theme Toggle event listener
+    themeToggle.addEventListener('click', () => {
+        const isLight = document.body.classList.toggle('light-theme');
+        localStorage.setItem('theme', isLight ? 'light' : 'dark');
+        themeToggleIcon.setAttribute('data-lucide', isLight ? 'moon' : 'sun');
+        lucide.createIcons();
     });
 
     // Initial Fetch
