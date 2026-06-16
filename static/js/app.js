@@ -10,6 +10,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const feedGrid = document.getElementById('feed-grid');
     const refreshBtn = document.getElementById('refresh-btn');
     const refreshSpinner = document.getElementById('refresh-spinner');
+    const exportCsvBtn = document.getElementById('export-csv-btn');
     const feedStatus = document.getElementById('feed-status');
     const searchInput = document.getElementById('search-input');
     const filterButtons = document.querySelectorAll('.filter-btn');
@@ -119,6 +120,9 @@ document.addEventListener('DOMContentLoaded', () => {
                             <span class="card-date">${item.date}</span>
                         </div>
                         <div class="card-actions">
+                            <button class="card-action-btn" title="Copy release note text" data-action="copy-card">
+                                <i data-lucide="copy"></i>
+                            </button>
                             <button class="card-action-btn tweet-btn-hover" title="Tweet about this update" data-action="tweet">
                                 <svg viewBox="0 0 24 24" fill="currentColor">
                                     <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/>
@@ -147,6 +151,23 @@ document.addEventListener('DOMContentLoaded', () => {
                 const release = releases.find(r => r.id === releaseId);
                 if (release) {
                     openTweetModal(release);
+                }
+            });
+        });
+
+        // Attach event listeners to copy card buttons
+        document.querySelectorAll('[data-action="copy-card"]').forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                const card = e.currentTarget.closest('.release-card');
+                const releaseId = card.getAttribute('data-id');
+                const release = releases.find(r => r.id === releaseId);
+                if (release) {
+                    navigator.clipboard.writeText(release.text).then(() => {
+                        showToast('Release note copied to clipboard!');
+                    }).catch(err => {
+                        console.error('Clipboard copy failed:', err);
+                        showToast('Failed to copy. Please copy manually.', 'alert-triangle');
+                    });
                 }
             });
         });
@@ -278,6 +299,56 @@ document.addEventListener('DOMContentLoaded', () => {
     // Event Handlers
     refreshBtn.addEventListener('click', () => {
         fetchReleases(true);
+    });
+
+    exportCsvBtn.addEventListener('click', () => {
+        if (releases.length === 0) {
+            showToast('No release notes to export', 'alert-triangle');
+            return;
+        }
+
+        // Get the current filtered releases list
+        const filtered = releases.filter(item => {
+            const matchesFilter = currentFilter === 'all' || item.type.toLowerCase() === currentFilter.toLowerCase();
+            const matchesSearch = searchQuery === '' || 
+                item.date.toLowerCase().includes(searchQuery) ||
+                item.type.toLowerCase().includes(searchQuery) ||
+                item.text.toLowerCase().includes(searchQuery);
+            return matchesFilter && matchesSearch;
+        });
+
+        if (filtered.length === 0) {
+            showToast('No filtered release notes to export', 'alert-triangle');
+            return;
+        }
+
+        // Generate CSV content
+        const headers = ['ID', 'Date', 'Type', 'Description', 'Link'];
+        const rows = filtered.map(item => [
+            item.id,
+            item.date,
+            item.type,
+            item.text.replace(/"/g, '""'), // Escape quotes
+            item.link
+        ]);
+
+        const csvContent = [
+            headers.join(','),
+            ...rows.map(r => r.map(val => `"${val}"`).join(','))
+        ].join('\n');
+
+        // Create Blob and download it
+        const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+        const url = URL.createObjectURL(blob);
+        const link = document.createElement('a');
+        link.setAttribute('href', url);
+        link.setAttribute('download', `bigquery_releases_${currentFilter}_${new Date().toISOString().slice(0, 10)}.csv`);
+        link.style.visibility = 'hidden';
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+
+        showToast('CSV export downloaded!');
     });
 
     searchInput.addEventListener('input', (e) => {
